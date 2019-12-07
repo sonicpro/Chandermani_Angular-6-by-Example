@@ -7,14 +7,14 @@ import { Component } from "@angular/core";
       <h2>
         Guess the Number!
       </h2>
-      <div class="card bg-light mb-3">
+      <div class="card bg-light mb-5">
         <div class="card-body">
           <p class="card-text">Guess the computer generated number between 1 and 1000.</p>
         </div>
       </div>
       <div>
         <label>Your Guess: </label>
-        <input type="number" [value]="guess" (input)="guess = $event.target.value" />
+        <input type="number" [value]="guess" (input)="guess = $event.target.value;" />
         <button (click)="verifyGuess()" class="btn btn-primary btn-sm">Verify</button>
         <button (click)="initializeGame()" class="btn btn-warning btn-sm">Restart</button>
       </div>
