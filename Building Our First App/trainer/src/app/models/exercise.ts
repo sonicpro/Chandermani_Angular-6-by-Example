@@ -4,7 +4,7 @@ export class Exercise {
     public title: string,
     public description: string,
     public image: string,
-    public nameSound?: string,
+    public soundFile?: string,
     public procedure?: string,
     public videos?: Array<string>) {
   }
