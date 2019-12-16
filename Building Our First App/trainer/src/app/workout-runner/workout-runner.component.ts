@@ -3,25 +3,18 @@ import { WorkoutPlan, Exercise, ExercisePlan } from "../models";
 
 @Component({
   selector: "abe-workout-runner",
-  template: `
-    <pre>
-      {{workoutPlan.exercises[currentExerciseIndex] | json}}
-    </pre>
-    <pre>
-      Time Left: {{workoutPlan.exercises[currentExerciseIndex]?.duration - exerciseRunningDuration}}
-    </pre>
-  `,
+  templateUrl: "./workout-runner.html",
   styles: []
 })
 export class WorkoutRunnerComponent implements OnInit {
-  workoutPlan: WorkoutPlan;
-  readonly restExercise: ExercisePlan;
-  workoutTimeRemaining: number;
-  currentExerciseIndex: number;
-  exerciseRunningDuration: number;
+  private readonly workoutPlan: WorkoutPlan;
+  private readonly restExercise: ExercisePlan;
+  private currentExerciseIndex: number;
   private theRestPeriodIsActive: boolean;
+  exerciseRunningDuration: number;
 
   constructor() {
+    this.currentExerciseIndex = 0;
     this.theRestPeriodIsActive = false;
     this.workoutPlan = this.buildWorkout();
     this.restExercise = new ExercisePlan(
@@ -32,6 +25,14 @@ export class WorkoutRunnerComponent implements OnInit {
 
   ngOnInit() {
     this.start();
+  }
+
+  getCurrentRunningExercise(): ExercisePlan {
+    return this.theRestPeriodIsActive ? this.restExercise : this.workoutPlan.exercises[this.currentExerciseIndex];
+  }
+
+  isWorkoutCompleted(): boolean {
+    return this.currentExerciseIndex === this.workoutPlan.exercises.length;
   }
 
   // region Helper functions
@@ -202,41 +203,41 @@ export class WorkoutRunnerComponent implements OnInit {
   }
 
   private start() {
-    this.workoutTimeRemaining = this.workoutPlan.totalWorkoutDuration();
-    this.currentExerciseIndex = 0;
-    this.startExercise(this.workoutPlan.exercises[this.currentExerciseIndex]);
+    this.exerciseRunningDuration = 0;
+    // Starts only the exercise with the index 0.
+    this.advanceExercise(this.workoutPlan.exercises[this.currentExerciseIndex]);
   }
 
-  private startExercise(exercise: ExercisePlan) {
-    this.exerciseRunningDuration = 0;
-    const intervalId = setInterval(() => {
+  private advanceExercise(exercise: ExercisePlan) {
+    let timeoutId = setTimeout(() => {
+      clearTimeout(timeoutId);
       if (exercise.duration <= this.exerciseRunningDuration) {
-        clearInterval(intervalId);
-        // Recurcively start the next exercise.
-        const next: ExercisePlan = this.getNextExercise();
+        this.exerciseRunningDuration = 0;
+        // Recursively start the next exercise.
+        const next = this.getNextExercise();
         if (next) {
-          this.startExercise(next);
+          this.advanceExercise(next);
         } else {
           console.log("Workout complete!");
         }
       } else {
         this.exerciseRunningDuration++;
+        this.advanceExercise(exercise);
       }
     }, 1000);
   }
 
   private getNextExercise(): ExercisePlan {
-    const theRestPeriodIsActive = this.theRestPeriodIsActive;
     this.theRestPeriodIsActive = !this.theRestPeriodIsActive;
-    if (theRestPeriodIsActive) {
+    // Increment the current exercise index as soon as a non-rest exercise is complete.
+    if (this.theRestPeriodIsActive) {
       this.currentExerciseIndex++;
-      if (this.currentExerciseIndex === this.workoutPlan.exercises.length) {
-        return null;
-      } else {
-        return this.workoutPlan.exercises[this.currentExerciseIndex];
-      }
     }
-    return this.restExercise;
+    if (this.currentExerciseIndex === this.workoutPlan.exercises.length) {
+      return null;
+    } else {
+      return this.getCurrentRunningExercise();
+    }
   }
 
   // endregion
