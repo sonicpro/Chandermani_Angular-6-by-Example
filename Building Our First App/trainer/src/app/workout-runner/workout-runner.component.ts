@@ -4,19 +4,23 @@ import { WorkoutPlan, Exercise, ExercisePlan } from "../models";
 @Component({
   selector: "abe-workout-runner",
   template: `
-    <p>
-      workout-runner works!
-    </p>
+    <pre>
+      {{workoutPlan.exercises[currentExerciseIndex] | json}}
+    </pre>
+    <pre>
+      Time Left: {{workoutPlan.exercises[currentExerciseIndex].duration - exerciseRunningDuration}}
+    </pre>
   `,
   styles: []
 })
 export class WorkoutRunnerComponent implements OnInit {
   workoutPlan: WorkoutPlan;
   restExercise: ExercisePlan;
+  workoutTimeRemaining: number;
+  currentExerciseIndex: number;
+  exerciseRunningDuration: number;
 
-  constructor() { }
-
-  ngOnInit() {
+  constructor() {
     this.workoutPlan = this.buildWorkout();
     this.restExercise = new ExercisePlan(
       new Exercise("rest", "Relax!", "Relax a bit", "rest.png"),
@@ -24,13 +28,18 @@ export class WorkoutRunnerComponent implements OnInit {
     );
   }
 
+  ngOnInit() {
+    this.start();
+  }
+
+  // region Helper functions
+
   private buildWorkout(): WorkoutPlan {
     const workout = new WorkoutPlan("7MinWorkout",
       "7 Minute Workout",
       10,
       []
     );
-
     workout.exercises = [...[
       new ExercisePlan(
         new Exercise("jumpingJacks",
@@ -187,7 +196,25 @@ export class WorkoutRunnerComponent implements OnInit {
           ["wqzrb67Dwf8", "_rdfjFSFKMY"]),
         30)]
     ];
-
     return workout;
   }
+
+  private start() {
+    this.workoutTimeRemaining = this.workoutPlan.totalWorkoutDuration();
+    this.currentExerciseIndex = 0;
+    this.startExercise(this.workoutPlan.exercises[this.currentExerciseIndex]);
+  }
+
+  private startExercise(exercise: ExercisePlan) {
+    this.exerciseRunningDuration = 0;
+    const intervalId = setInterval(() => {
+      if (exercise.duration <= this.exerciseRunningDuration) {
+        clearInterval(intervalId);
+      } else {
+        this.exerciseRunningDuration++;
+      }
+    }, 1000);
+  }
+
+  // endregion
 }
