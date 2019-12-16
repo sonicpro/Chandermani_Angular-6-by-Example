@@ -8,19 +8,21 @@ import { WorkoutPlan, Exercise, ExercisePlan } from "../models";
       {{workoutPlan.exercises[currentExerciseIndex] | json}}
     </pre>
     <pre>
-      Time Left: {{workoutPlan.exercises[currentExerciseIndex].duration - exerciseRunningDuration}}
+      Time Left: {{workoutPlan.exercises[currentExerciseIndex]?.duration - exerciseRunningDuration}}
     </pre>
   `,
   styles: []
 })
 export class WorkoutRunnerComponent implements OnInit {
   workoutPlan: WorkoutPlan;
-  restExercise: ExercisePlan;
+  readonly restExercise: ExercisePlan;
   workoutTimeRemaining: number;
   currentExerciseIndex: number;
   exerciseRunningDuration: number;
+  private theRestPeriodIsActive: boolean;
 
   constructor() {
+    this.theRestPeriodIsActive = false;
     this.workoutPlan = this.buildWorkout();
     this.restExercise = new ExercisePlan(
       new Exercise("rest", "Relax!", "Relax a bit", "rest.png"),
@@ -210,10 +212,31 @@ export class WorkoutRunnerComponent implements OnInit {
     const intervalId = setInterval(() => {
       if (exercise.duration <= this.exerciseRunningDuration) {
         clearInterval(intervalId);
+        // Recurcively start the next exercise.
+        const next: ExercisePlan = this.getNextExercise();
+        if (next) {
+          this.startExercise(next);
+        } else {
+          console.log("Workout complete!");
+        }
       } else {
         this.exerciseRunningDuration++;
       }
     }, 1000);
+  }
+
+  private getNextExercise(): ExercisePlan {
+    const theRestPeriodIsActive = this.theRestPeriodIsActive;
+    this.theRestPeriodIsActive = !this.theRestPeriodIsActive;
+    if (theRestPeriodIsActive) {
+      this.currentExerciseIndex++;
+      if (this.currentExerciseIndex === this.workoutPlan.exercises.length) {
+        return null;
+      } else {
+        return this.workoutPlan.exercises[this.currentExerciseIndex];
+      }
+    }
+    return this.restExercise;
   }
 
   // endregion
