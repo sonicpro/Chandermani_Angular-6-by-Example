@@ -233,7 +233,7 @@ export class WorkoutRunnerComponent implements OnInit {
     if (this.theRestPeriodIsActive) {
       this.currentExerciseIndex++;
     }
-    if (this.currentExerciseIndex === this.workoutPlan.exercises.length) {
+    if (this.isWorkoutCompleted()) {
       return null;
     } else {
       return this.getCurrentRunningExercise();
