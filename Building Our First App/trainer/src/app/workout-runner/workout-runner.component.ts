@@ -209,7 +209,7 @@ export class WorkoutRunnerComponent implements OnInit {
   }
 
   private advanceExercise(exercise: ExercisePlan) {
-    let timeoutId = setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       clearTimeout(timeoutId);
       if (exercise.duration <= this.exerciseRunningDuration) {
         this.exerciseRunningDuration = 0;
